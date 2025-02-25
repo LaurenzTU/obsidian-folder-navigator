@@ -1,6 +1,6 @@
 {
-	"id": "plugin-template",
-	"name": "Plugin Template",
+	"id": "folder-navigator",
+	"name": "Folder Navigator",
 	"version": "0.0.1",
 	"minAppVersion": "1.0.0",
 	"author": "wenlzhang",

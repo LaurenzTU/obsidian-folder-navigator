@@ -1,8 +1,9 @@
-import { Plugin } from 'obsidian';
-import { SettingsTab } from './settingsTab';
-import { PluginSettings, DEFAULT_SETTINGS } from './settings';
+import { Plugin } from "obsidian";
+import { SettingsTab } from "./settingsTab";
+import { PluginSettings, DEFAULT_SETTINGS } from "./settings";
+import { FolderSuggestModal } from "./folderSuggestModal";
 
-export default class MyPlugin extends Plugin {
+export default class FolderNavigatorPlugin extends Plugin {
     settings: PluginSettings;
 
     async onload() {
@@ -11,15 +12,15 @@ export default class MyPlugin extends Plugin {
         // Add settings tab
         this.addSettingTab(new SettingsTab(this.app, this));
 
-        // Add your plugin's functionality here
-        // For example:
-        // this.addCommand({
-        //     id: 'example-command',
-        //     name: 'Example Command',
-        //     callback: () => {
-        //         // Command logic
-        //     }
-        // });
+        // Add folder navigation command
+        this.addCommand({
+            id: "open-folder-navigator",
+            name: "Navigate to folder",
+            hotkeys: [{ modifiers: this.settings.hotkey.split("+"), key: "" }],
+            callback: () => {
+                new FolderSuggestModal(this.app).open();
+            },
+        });
     }
 
     onunload() {
@@ -27,7 +28,11 @@ export default class MyPlugin extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        this.settings = Object.assign(
+            {},
+            DEFAULT_SETTINGS,
+            await this.loadData(),
+        );
     }
 
     async saveSettings() {

@@ -1,10 +1,11 @@
-import { App } from 'obsidian';
+import { App } from "obsidian";
 
 export interface PluginSettings {
-    // Add your settings properties here
-    exampleSetting: string;
+    hotkey: string;
+    maxResults: number;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
-    exampleSetting: 'default'
+    hotkey: "Mod+Shift+O",
+    maxResults: 10,
 };

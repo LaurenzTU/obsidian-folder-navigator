@@ -1,55 +1,48 @@
-# Plugin Template
+# Obsidian Folder Navigator
 
-This is a template for creating plugins for [Obsidian](https://obsidian.md), maintained by [wenlzhang](https://github.com/wenlzhang).
+A simple plugin for Obsidian that allows you to quickly navigate to folders in your vault using fuzzy search.
 
-## Getting started
+## Features
 
-1. Clone this repository to your local machine
-2. Update the following files with your plugin information:
-   - `manifest.json`:
-     - `id`: Your plugin ID (in kebab-case)
-     - `name`: Your plugin name
-     - `author`: Your name
-     - `authorUrl`: Your website or GitHub profile URL
-     - `fundingUrl`: Optional funding information
-   - `package.json`:
-     - `name`: Your plugin name (should match manifest.json)
-     - `description`: Your plugin description
-     - `author`: Your name
-     - `keywords`: Relevant keywords for your plugin
+- Quick folder navigation using fuzzy search
+- Customizable hotkey (default: Cmd/Ctrl+Shift+O)
+- Configurable maximum number of search results
+- Keyboard navigation support
+- Works with nested folders
+
+## Usage
+
+1. Press the hotkey (default: Cmd/Ctrl+Shift+O) to open the folder search modal
+2. Type to search for folders - the search is fuzzy, so you don't need to type the exact name
+3. Use arrow keys to navigate through the results
+4. Press Enter to select a folder and navigate to it in the file explorer
+
+## Settings
+
+- **Hotkey**: Customize the keyboard shortcut to open the folder navigator (requires restart)
+- **Maximum results**: Set the maximum number of folders to show in search results (5-50)
+
+## Installation
+
+1. Open Settings in Obsidian
+2. Navigate to Community Plugins and disable Safe Mode
+3. Click Browse and search for "Folder Navigator"
+4. Install the plugin
+5. Enable the plugin in the Community Plugins tab
+
+## Manual Installation
+
+1. Download the latest release
+2. Extract the files into your vault's `.obsidian/plugins/obsidian-folder-navigator/` directory
+3. Reload Obsidian
+4. Enable the plugin in Settings > Community Plugins
 
 ## Development
 
-1. Install dependencies:
-```bash
-npm install
-```
+1. Clone this repository
+2. Run `npm i` to install dependencies
+3. Run `npm run dev` to start compilation in watch mode
 
-2. Start development server:
-```bash
-npm run dev
-```
+## License
 
-3. Build the plugin:
-```bash
-npm run build
-```
-
-## Testing your plugin
-
-1. Create a test vault in Obsidian
-2. Create a `.obsidian/plugins` folder in your test vault
-3. Copy your plugin folder into the plugins folder
-4. Reload Obsidian to load the plugin (Ctrl/Cmd + R)
-5. Enable the plugin in Obsidian's settings
-
-## Publishing your plugin
-
-1. Update `versions.json` with your plugin's version history
-2. Test your plugin thoroughly
-3. Create a GitHub release
-4. Submit your plugin to the Obsidian Plugin Gallery
-
-## Support me
-
-<a href='https://ko-fi.com/C0C66C1TB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+MIT

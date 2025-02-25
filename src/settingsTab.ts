@@ -1,10 +1,10 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
-import type MyPlugin from './main';
+import { App, PluginSettingTab, Setting } from "obsidian";
+import FolderNavigatorPlugin from "./main";
 
 export class SettingsTab extends PluginSettingTab {
-    plugin: MyPlugin;
+    plugin: FolderNavigatorPlugin;
 
-    constructor(app: App, plugin: MyPlugin) {
+    constructor(app: App, plugin: FolderNavigatorPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
@@ -13,17 +13,31 @@ export class SettingsTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Plugin Settings' });
+        new Setting(containerEl)
+            .setName("Hotkey")
+            .setDesc("Hotkey to open folder navigator (requires restart)")
+            .addText((text) =>
+                text
+                    .setPlaceholder("Mod+Shift+O")
+                    .setValue(this.plugin.settings.hotkey)
+                    .onChange(async (value) => {
+                        this.plugin.settings.hotkey = value;
+                        await this.plugin.saveSettings();
+                    }),
+            );
 
         new Setting(containerEl)
-            .setName('Example Setting')
-            .setDesc('This is an example setting')
-            .addText(text => text
-                .setPlaceholder('Enter your setting')
-                .setValue(this.plugin.settings.exampleSetting)
-                .onChange(async (value) => {
-                    this.plugin.settings.exampleSetting = value;
-                    await this.plugin.saveSettings();
-                }));
+            .setName("Maximum results")
+            .setDesc("Maximum number of folders to show in search results")
+            .addSlider((slider) =>
+                slider
+                    .setLimits(5, 50, 5)
+                    .setValue(this.plugin.settings.maxResults)
+                    .setDynamicTooltip()
+                    .onChange(async (value) => {
+                        this.plugin.settings.maxResults = value;
+                        await this.plugin.saveSettings();
+                    }),
+            );
     }
 }
