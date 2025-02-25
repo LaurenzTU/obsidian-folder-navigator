@@ -16,7 +16,6 @@ export default class FolderNavigatorPlugin extends Plugin {
         this.addCommand({
             id: "open-folder-navigator",
             name: "Navigate to folder",
-            hotkeys: [{ modifiers: this.settings.hotkey.split("+"), key: "" }],
             callback: () => {
                 new FolderSuggestModal(this.app).open();
             },
@@ -28,11 +27,7 @@ export default class FolderNavigatorPlugin extends Plugin {
     }
 
     async loadSettings() {
-        this.settings = Object.assign(
-            {},
-            DEFAULT_SETTINGS,
-            await this.loadData(),
-        );
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
     }
 
     async saveSettings() {

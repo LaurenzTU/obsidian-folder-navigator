@@ -14,19 +14,6 @@ export class SettingsTab extends PluginSettingTab {
         containerEl.empty();
 
         new Setting(containerEl)
-            .setName("Hotkey")
-            .setDesc("Hotkey to open folder navigator (requires restart)")
-            .addText((text) =>
-                text
-                    .setPlaceholder("Mod+Shift+O")
-                    .setValue(this.plugin.settings.hotkey)
-                    .onChange(async (value) => {
-                        this.plugin.settings.hotkey = value;
-                        await this.plugin.saveSettings();
-                    }),
-            );
-
-        new Setting(containerEl)
             .setName("Maximum results")
             .setDesc("Maximum number of folders to show in search results")
             .addSlider((slider) =>
