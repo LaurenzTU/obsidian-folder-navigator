@@ -1,4 +1,4 @@
-import { App, FuzzySuggestModal, TFolder, View } from "obsidian";
+import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf } from "obsidian";
 
 export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     folders: TFolder[];
@@ -36,14 +36,18 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
 
     onChooseItem(folder: TFolder): void {
         // Get the file explorer leaf
-        const fileExplorer =
+        const fileExplorerLeaf =
             this.app.workspace.getLeavesOfType("file-explorer")[0];
-        if (!fileExplorer) return;
-
-        const view = fileExplorer.view as any;
+        if (!fileExplorerLeaf) return;
 
         // Ensure the file explorer is visible
-        this.app.workspace.revealLeaf(fileExplorer);
+        this.app.workspace.revealLeaf(fileExplorerLeaf);
+
+        // Get the file explorer instance
+        const fileExplorer = (this.app as any).internalPlugins.plugins[
+            "file-explorer"
+        ].instance;
+        if (!fileExplorer) return;
 
         // Expand parent folders if needed
         if (folder.parent && folder.parent.path) {
@@ -56,24 +60,31 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                 const parentFolder =
                     this.app.vault.getAbstractFileByPath(currentPath);
                 if (parentFolder && parentFolder instanceof TFolder) {
-                    view.expandFolder(parentFolder, true);
+                    fileExplorer.revealInFolder(parentFolder);
                 }
             }
         }
 
-        // Expand the target folder itself
-        view.expandFolder(folder, true);
+        // Reveal the target folder
+        fileExplorer.revealInFolder(folder);
 
-        // Scroll the folder into view
-        const fileItem = view.fileItems[folder.path];
-        if (fileItem) {
-            fileItem.el.scrollIntoView({ behavior: "smooth", block: "center" });
-            // Highlight the folder temporarily
-            fileItem.el.addClass("nav-folder-title-highlighted");
-            setTimeout(
-                () => fileItem.el.removeClass("nav-folder-title-highlighted"),
-                2000,
+        // Wait for the DOM to update
+        setTimeout(() => {
+            // Find and highlight the folder element
+            const folderEl = fileExplorerLeaf.view.containerEl.querySelector(
+                `[data-path="${folder.path}"]`,
             );
-        }
+            if (folderEl) {
+                folderEl.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+                folderEl.addClass("nav-folder-title-highlighted");
+                setTimeout(
+                    () => folderEl.removeClass("nav-folder-title-highlighted"),
+                    2000,
+                );
+            }
+        }, 50);
     }
 }
