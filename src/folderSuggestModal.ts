@@ -1,10 +1,13 @@
 import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf } from "obsidian";
+import type FolderNavigatorPlugin from "./main";
 
 export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     folders: TFolder[];
+    plugin: FolderNavigatorPlugin;
 
-    constructor(app: App) {
+    constructor(app: App, plugin: FolderNavigatorPlugin) {
         super(app);
+        this.plugin = plugin;
         this.setPlaceholder("Type folder name...");
         this.folders = this.getAllFolders();
     }
@@ -84,6 +87,21 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                     () => folderEl.removeClass("nav-folder-title-highlighted"),
                     2000,
                 );
+
+                // If expandTargetFolder is enabled, expand the target folder
+                if (this.plugin.settings.expandTargetFolder) {
+                    const collapseIndicator =
+                        folderEl.querySelector(".collapse-icon");
+                    if (collapseIndicator) {
+                        const isCollapsed =
+                            collapseIndicator.classList.contains(
+                                "is-collapsed",
+                            );
+                        if (isCollapsed) {
+                            (collapseIndicator as HTMLElement).click();
+                        }
+                    }
+                }
             }
         }, 50);
     }

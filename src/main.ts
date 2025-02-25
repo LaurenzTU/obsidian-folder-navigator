@@ -17,7 +17,7 @@ export default class FolderNavigatorPlugin extends Plugin {
             id: "open-folder-navigator",
             name: "Navigate to folder",
             callback: () => {
-                new FolderSuggestModal(this.app).open();
+                new FolderSuggestModal(this.app, this).open();
             },
         });
     }

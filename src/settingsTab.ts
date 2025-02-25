@@ -26,5 +26,19 @@ export class SettingsTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     }),
             );
+
+        new Setting(containerEl)
+            .setName("Expand target folder on navigation")
+            .setDesc(
+                "When enabled, folders will be automatically expanded when you navigate to them",
+            )
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.expandTargetFolder)
+                    .onChange(async (value) => {
+                        this.plugin.settings.expandTargetFolder = value;
+                        await this.plugin.saveSettings();
+                    }),
+            );
     }
 }
