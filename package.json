@@ -1,7 +1,7 @@
 {
-    "name": "plugin-template",
+    "name": "folder-navigator",
     "version": "0.1.0",
-    "description": "Plugin Template.",
+    "description": "Quickly navigate to folders in your vault using fuzzy search.",
     "main": "main.js",
     "scripts": {
         "dev": "node esbuild.config.mjs",
