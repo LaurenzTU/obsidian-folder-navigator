@@ -1,6 +1,8 @@
 # Obsidian Folder Navigator
 
-A simple plugin for Obsidian that allows you to quickly navigate to folders in your vault using fuzzy search.
+[![GitHub release (Latest by date)](https://img.shields.io/github/v/release/wenlzhang/obsidian-folder-navigator)](https://github.com/wenlzhang/obsidian-folder-navigator/releases) ![GitHub all releases](https://img.shields.io/github/downloads/wenlzhang/obsidian-folder-navigator/total?color=success)
+
+An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to folders in your vault using fuzzy search.
 
 ## Features
 
