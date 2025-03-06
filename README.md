@@ -39,12 +39,6 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 3. Reload Obsidian
 4. Enable the plugin in Settings > Community Plugins
 
-## Development
+## Support
 
-1. Clone this repository
-2. Run `npm i` to install dependencies
-3. Run `npm run dev` to start compilation in watch mode
-
-## License
-
-MIT
+<a href='https://ko-fi.com/C0C66C1TB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
