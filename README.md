@@ -7,9 +7,7 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 ## Features
 
 - Quick folder navigation using fuzzy search
-- Customizable hotkey (default: Cmd/Ctrl+Shift+O)
 - Configurable maximum number of search results
-- Keyboard navigation support
 - Works with nested folders
 
 ## Usage
