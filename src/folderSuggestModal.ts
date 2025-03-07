@@ -1,6 +1,23 @@
 import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf } from "obsidian";
 import type FolderNavigatorPlugin from "./main";
 
+interface FileExplorerPlugin {
+    instance: {
+        revealInFolder: (folder: TFolder) => void;
+        setCollapsed: (folder: TFolder, collapsed: boolean) => void;
+    };
+}
+
+interface InternalPlugins {
+    plugins: {
+        "file-explorer": FileExplorerPlugin;
+    };
+}
+
+interface ExtendedApp extends App {
+    internalPlugins: InternalPlugins;
+}
+
 export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     folders: TFolder[];
     plugin: FolderNavigatorPlugin;
@@ -47,7 +64,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         this.app.workspace.revealLeaf(fileExplorerLeaf);
 
         // Get the file explorer instance
-        const fileExplorer = (this.app as any).internalPlugins.plugins[
+        const fileExplorer = (this.app as ExtendedApp).internalPlugins.plugins[
             "file-explorer"
         ].instance;
         if (!fileExplorer) return;
@@ -59,11 +76,14 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
 
             // Expand each parent folder
             for (const part of pathParts) {
-                currentPath += (currentPath ? "/" : "") + part;
-                const parentFolder =
-                    this.app.vault.getAbstractFileByPath(currentPath);
-                if (parentFolder && parentFolder instanceof TFolder) {
-                    fileExplorer.revealInFolder(parentFolder);
+                if (part) {
+                    currentPath += (currentPath ? "/" : "") + part;
+                    const parentFolder =
+                        this.app.vault.getAbstractFileByPath(currentPath);
+                    if (parentFolder && parentFolder instanceof TFolder) {
+                        fileExplorer.revealInFolder(parentFolder);
+                        fileExplorer.setCollapsed(parentFolder, false);
+                    }
                 }
             }
         }
@@ -74,14 +94,19 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         // Wait for the DOM to update
         setTimeout(() => {
             // Find and highlight the folder element
-            const folderEl = fileExplorerLeaf.view.containerEl.querySelector(
-                `[data-path="${folder.path}"]`,
+            const folderPath = folder.path;
+            const folderEl = document.querySelector(
+                `.nav-folder-title[data-path="${folderPath}"]`,
             );
+
             if (folderEl) {
+                // Scroll the folder into view
                 folderEl.scrollIntoView({
                     behavior: "smooth",
                     block: "center",
                 });
+
+                // Add highlight class and remove after 2 seconds
                 folderEl.addClass("nav-folder-title-highlighted");
                 setTimeout(
                     () => folderEl.removeClass("nav-folder-title-highlighted"),
