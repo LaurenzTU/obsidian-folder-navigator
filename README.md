@@ -32,7 +32,7 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 
 ## Manual Installation
 
-1. Download the latest release
+1. Download the latest [release](https://github.com/wenlzhang/obsidian-folder-navigator/releases)
 2. Extract the files into your vault's `.obsidian/plugins/obsidian-folder-navigator/` directory
 3. Reload Obsidian
 4. Enable the plugin in Settings > Community Plugins
