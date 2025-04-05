@@ -17,33 +17,36 @@ I really enjoy using Obsidian's file search feature, which allows us to quickly 
 
 However, I need to navigate to folders in a similar way. Unfortunately, I couldn't find a method to do this, either by using Obsidian's official features or third-party plugins. That's why I'm developing this plugin to achieve that. **It allows you to navigate to folders just as you can when navigating to files.**
 
-## Usage
+## Documentation
 
-1. Press the hotkey (default: Cmd/Ctrl+Shift+O) to open the folder search modal
-2. Type to search for folders - the search is fuzzy, so you don't need to type the exact name
-3. Use arrow keys to navigate through the results
-4. Press Enter to select a folder and navigate to it in the file explorer
+📚 **[View Full Documentation](https://ptkm.net/obsidian-folder-navigator)**
 
-## Settings
+Visit the documentation site to learn how to make the most of Folder Navigator in your Obsidian workflow.
 
-- **Maximum results**: Set the maximum number of folders to show in search results (5-50)
-- **Expand target folder on navigation**: When enabled, folders will be automatically expanded when you navigate to them
+## Support & Community
 
-## Installation
+This plugin is developed and maintained during my free time. A lot of thought, energy, and care goes into making it reliable and user-friendly.
 
-1. Open Settings in Obsidian
-2. Navigate to Community Plugins and disable Safe Mode
-3. Click Browse and search for "Folder Navigator"
-4. Install the plugin
-5. Enable the plugin in the Community Plugins tab
+If you find Folder Navigator valuable in your daily workflow:
 
-## Manual Installation
+- If it helps you organize your folders more effectively
+- If it saves you time and mental energy navigating your knowledge base
 
-1. Download the latest [release](https://github.com/wenlzhang/obsidian-folder-navigator/releases)
-2. Extract the files into your vault's `.obsidian/plugins/obsidian-folder-navigator/` directory
-3. Reload Obsidian
-4. Enable the plugin in Settings > Community Plugins
+Please consider supporting my work. Your support would help me dedicate more time and energy to:
 
-## Support
+- Developing new features
+- Maintaining code quality
+- Providing support and documentation
+- Making the plugin even better for everyone
 
-<a href='https://ko-fi.com/C0C66C1TB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+### Ways to Support
+
+You can support this project in several ways:
+
+- ⭐ Star the project on GitHub
+- 💝 <a href='https://ko-fi.com/C0C66C1TB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+- 💌 Share your success stories and feedback
+- 📢 Spread the word about the plugin
+- 🐛 [Report issues](https://github.com/wenlzhang/obsidian-folder-navigator/issues) to help improve the plugin
+
+Thank you for being part of this journey! 🙏
