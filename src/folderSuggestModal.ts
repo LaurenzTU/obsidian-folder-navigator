@@ -74,14 +74,14 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
      */
     private findFolderElementInDOM(path: string): HTMLElement | null {
         const escapedPath = this.escapePath(path);
-        
+
         // Try common selectors first
         const selectors = [
             `.nav-folder-title[data-path="${escapedPath}"]`,
             `.nav-file-title[data-path="${escapedPath}"]`,
-            `[data-path="${escapedPath}"]`
+            `[data-path="${escapedPath}"]`,
         ];
-        
+
         // Try each selector
         for (const selector of selectors) {
             const el = document.querySelector(selector);
@@ -90,24 +90,30 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                 return el;
             }
         }
-        
+
         // Try to find by partial path matches if exact match failed
-        const allElements = document.querySelectorAll('[data-path]');
+        const allElements = document.querySelectorAll("[data-path]");
         for (const el of Array.from(allElements)) {
-            const elPath = el.getAttribute('data-path');
-            if (elPath && (elPath === path || path.endsWith(elPath) || elPath.endsWith(path))) {
+            const elPath = el.getAttribute("data-path");
+            if (
+                elPath &&
+                (elPath === path ||
+                    path.endsWith(elPath) ||
+                    elPath.endsWith(path))
+            ) {
                 log("Found folder by partial path match:", elPath);
                 return el as HTMLElement;
             }
         }
-        
+
         // If in debug mode, provide more details about what was found
         if (DEBUG_MODE) {
-            const samplePaths = Array.from(allElements).slice(0, 5)
-                .map(el => el.getAttribute('data-path'));
+            const samplePaths = Array.from(allElements)
+                .slice(0, 5)
+                .map((el) => el.getAttribute("data-path"));
             log("Sample paths in DOM:", samplePaths);
         }
-        
+
         return null;
     }
 
@@ -117,16 +123,19 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     private tryToExpandFolderViaDOM(path: string): void {
         setTimeout(() => {
             log("Trying to expand folder via DOM:", path);
-            
+
             const folderElement = this.findFolderElementInDOM(path);
-            
+
             if (folderElement) {
-                const collapseIndicator = folderElement.querySelector('.nav-folder-collapse-indicator');
+                const collapseIndicator = folderElement.querySelector(
+                    ".nav-folder-collapse-indicator",
+                );
                 if (collapseIndicator instanceof HTMLElement) {
-                    const parentEl = folderElement.closest('.nav-folder');
-                    const isCollapsed = parentEl?.classList.contains('is-collapsed') ||
-                                      collapseIndicator.classList.contains('is-collapsed');
-                    
+                    const parentEl = folderElement.closest(".nav-folder");
+                    const isCollapsed =
+                        parentEl?.classList.contains("is-collapsed") ||
+                        collapseIndicator.classList.contains("is-collapsed");
+
                     if (isCollapsed) {
                         log("Clicking collapse indicator to expand folder");
                         collapseIndicator.click();
@@ -148,9 +157,9 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     private highlightFolder(folder: TFolder): void {
         setTimeout(() => {
             log("Looking for folder to highlight:", folder.path);
-            
+
             const folderElement = this.findFolderElementInDOM(folder.path);
-            
+
             if (folderElement) {
                 // Scroll into view
                 log("Scrolling folder into view");
@@ -158,15 +167,17 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                     behavior: "smooth",
                     block: "center",
                 });
-                
+
                 // Add highlight class
                 log("Adding highlight class");
                 folderElement.classList.add("nav-folder-title-highlighted");
-                
+
                 // Remove after delay
                 setTimeout(() => {
                     if (folderElement) {
-                        folderElement.classList.remove("nav-folder-title-highlighted");
+                        folderElement.classList.remove(
+                            "nav-folder-title-highlighted",
+                        );
                     }
                 }, 2000);
             } else {
@@ -185,14 +196,17 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                 logError("Could not find file explorer plugin instance");
                 return null;
             }
-            
-            const fileExplorer = app.internalPlugins.plugins["file-explorer"].instance;
-            
-            if (typeof fileExplorer.revealInFolder !== 'function') {
-                logError("revealInFolder method not found on file explorer instance");
+
+            const fileExplorer =
+                app.internalPlugins.plugins["file-explorer"].instance;
+
+            if (typeof fileExplorer.revealInFolder !== "function") {
+                logError(
+                    "revealInFolder method not found on file explorer instance",
+                );
                 return null;
             }
-            
+
             return fileExplorer;
         } catch (error) {
             logError("Error accessing file explorer:", error);
@@ -203,26 +217,30 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     /**
      * Expand all parent folders of the target folder
      */
-    private expandParentFolders(folder: TFolder, fileExplorer: FileExplorerInstance): void {
+    private expandParentFolders(
+        folder: TFolder,
+        fileExplorer: FileExplorerInstance,
+    ): void {
         if (!folder.parent || !folder.parent.path) return;
-        
+
         log("Processing parent folders for:", folder.parent.path);
-        
+
         const pathParts = folder.parent.path.split("/");
         let currentPath = "";
-        
+
         // Process each parent path
         for (const part of pathParts) {
             if (part) {
                 currentPath += (currentPath ? "/" : "") + part;
                 log("Processing parent path:", currentPath);
-                
-                const parentFolder = this.app.vault.getAbstractFileByPath(currentPath);
+
+                const parentFolder =
+                    this.app.vault.getAbstractFileByPath(currentPath);
                 if (parentFolder instanceof TFolder) {
                     // Reveal in file explorer using the API
                     log("Revealing parent folder:", parentFolder.path);
                     fileExplorer.revealInFolder(parentFolder);
-                    
+
                     // Try to expand it using DOM as a fallback
                     this.tryToExpandFolderViaDOM(parentFolder.path);
                 }
@@ -232,41 +250,44 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
 
     onChooseItem(folder: TFolder): void {
         log("Folder selected:", folder.path);
-        
+
         // Get and activate file explorer leaf
-        const fileExplorerLeaves = this.app.workspace.getLeavesOfType("file-explorer");
+        const fileExplorerLeaves =
+            this.app.workspace.getLeavesOfType("file-explorer");
         log("File explorer leaves found:", fileExplorerLeaves.length);
-        
+
         if (fileExplorerLeaves.length === 0) {
             logError("No file explorer leaf found");
             return;
         }
-        
+
         const fileExplorerLeaf = fileExplorerLeaves[0];
         this.app.workspace.revealLeaf(fileExplorerLeaf);
         log("File explorer leaf revealed");
-        
+
         // Get file explorer and process folder
         const fileExplorer = this.getFileExplorer();
         if (!fileExplorer) return;
-        
+
         try {
             // Expand parent folders first
             this.expandParentFolders(folder, fileExplorer);
-            
+
             // Reveal the target folder
             log("Revealing target folder:", folder.path);
             fileExplorer.revealInFolder(folder);
-            
+
             // Expand target folder if setting is enabled
-            if (this.plugin.settings.expandTargetFolder && folder instanceof TFolder) {
+            if (
+                this.plugin.settings.expandTargetFolder &&
+                folder instanceof TFolder
+            ) {
                 log("Attempting to expand target folder:", folder.path);
                 this.tryToExpandFolderViaDOM(folder.path);
             }
-            
+
             // Highlight the folder
             this.highlightFolder(folder);
-            
         } catch (error) {
             logError("Error in folder navigation:", error);
         }
