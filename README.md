@@ -8,7 +8,14 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 
 - Quick folder navigation using fuzzy search
 - Configurable maximum number of search results
+- Expand target folder on navigation
 - Works with nested folders
+
+## Why Folder Navigator?
+
+I really enjoy using Obsidian's file search feature, which allows us to quickly search for files and navigate to them. There are also third-party plugins that further enhance this experience.
+
+However, I need to navigate to folders in a similar way. Unfortunately, I couldn't find a method to do this, either by using Obsidian's official features or third-party plugins. That's why I'm developing this plugin to achieve that. **It allows you to navigate to folders just as you can when navigating to files.**
 
 ## Usage
 
@@ -19,8 +26,8 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 
 ## Settings
 
-- **Hotkey**: Customize the keyboard shortcut to open the folder navigator (requires restart)
 - **Maximum results**: Set the maximum number of folders to show in search results (5-50)
+- **Expand target folder on navigation**: When enabled, folders will be automatically expanded when you navigate to them
 
 ## Installation
 
