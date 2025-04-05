@@ -30,20 +30,8 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     }
 
     private getAllFolders(): TFolder[] {
-        const folders: TFolder[] = [];
-        const rootFolder = this.app.vault.getRoot();
-
-        const collectFolders = (folder: TFolder) => {
-            folders.push(folder);
-            folder.children.forEach((child) => {
-                if (child instanceof TFolder) {
-                    collectFolders(child);
-                }
-            });
-        };
-
-        collectFolders(rootFolder);
-        return folders;
+        // Use the official Vault.getAllFolders() API instead of custom implementation
+        return this.app.vault.getAllFolders();
     }
 
     getItems(): TFolder[] {

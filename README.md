@@ -1,4 +1,4 @@
-# Obsidian Folder Navigator
+# Folder Navigator
 
 [![GitHub release (Latest by date)](https://img.shields.io/github/v/release/wenlzhang/obsidian-folder-navigator)](https://github.com/wenlzhang/obsidian-folder-navigator/releases) ![GitHub all releases](https://img.shields.io/github/downloads/wenlzhang/obsidian-folder-navigator/total?color=success)
 
