@@ -1,16 +1,22 @@
-import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf } from "obsidian";
+import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf, View } from "obsidian";
 import type FolderNavigatorPlugin from "./main";
 
-interface FileExplorerPlugin {
-    instance: {
-        revealInFolder: (folder: TFolder) => void;
-        setCollapsed: (folder: TFolder, collapsed: boolean) => void;
+interface FileExplorerView extends View {
+    fileItems: Record<string, any>;
+}
+
+interface FileExplorerInstance {
+    view: {
+        fileItems: Record<string, any>;
     };
+    revealInFolder: (file: any) => void;
 }
 
 interface InternalPlugins {
     plugins: {
-        "file-explorer": FileExplorerPlugin;
+        "file-explorer": {
+            instance: FileExplorerInstance;
+        };
     };
 }
 
@@ -30,7 +36,6 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     }
 
     private getAllFolders(): TFolder[] {
-        // Use the official Vault.getAllFolders() API instead of custom implementation
         return this.app.vault.getAllFolders();
     }
 
@@ -42,80 +47,201 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         return folder.path;
     }
 
-    onChooseItem(folder: TFolder): void {
-        // Get the file explorer leaf
-        const fileExplorerLeaf =
-            this.app.workspace.getLeavesOfType("file-explorer")[0];
-        if (!fileExplorerLeaf) return;
+    private escapePath(path: string): string {
+        return CSS.escape(path);
+    }
 
-        // Ensure the file explorer is visible
-        this.app.workspace.revealLeaf(fileExplorerLeaf);
-
-        // Get the file explorer instance
-        const fileExplorer = (this.app as ExtendedApp).internalPlugins.plugins[
-            "file-explorer"
-        ].instance;
-        if (!fileExplorer) return;
-
-        // Expand parent folders if needed
-        if (folder.parent && folder.parent.path) {
-            const pathParts = folder.parent.path.split("/");
-            let currentPath = "";
-
-            // Expand each parent folder
-            for (const part of pathParts) {
-                if (part) {
-                    currentPath += (currentPath ? "/" : "") + part;
-                    const parentFolder =
-                        this.app.vault.getAbstractFileByPath(currentPath);
-                    if (parentFolder && parentFolder instanceof TFolder) {
-                        fileExplorer.revealInFolder(parentFolder);
-                        fileExplorer.setCollapsed(parentFolder, false);
+    private tryToExpandFolderViaDOM(path: string): void {
+        setTimeout(() => {
+            console.log("Trying to expand folder via DOM:", path);
+            const escapedPath = this.escapePath(path);
+            
+            const selectors = [
+                `.nav-folder-title[data-path="${escapedPath}"]`,
+                `.nav-file-title[data-path="${escapedPath}"]`,
+                `[data-path="${escapedPath}"]`
+            ];
+            
+            let folderElement: HTMLElement | null = null;
+            
+            for (const selector of selectors) {
+                const el = document.querySelector(selector);
+                if (el instanceof HTMLElement) {
+                    folderElement = el;
+                    console.log("Found folder element using selector:", selector);
+                    break;
+                }
+            }
+            
+            if (!folderElement) {
+                console.log("Folder element not found in DOM via direct selectors, trying alternative approach");
+                
+                const allElements = document.querySelectorAll('[data-path]');
+                console.log("Total elements with data-path:", allElements.length);
+                
+                const samplePaths = Array.from(allElements).slice(0, 5)
+                    .map(el => el.getAttribute('data-path'));
+                console.log("Sample paths in DOM:", samplePaths);
+                
+                for (const el of Array.from(allElements)) {
+                    const elPath = el.getAttribute('data-path');
+                    if (elPath && (elPath === path || path.endsWith(elPath) || elPath.endsWith(path))) {
+                        folderElement = el as HTMLElement;
+                        console.log("Found folder by partial path match:", elPath);
+                        break;
                     }
                 }
             }
+            
+            if (folderElement) {
+                const collapseIndicator = folderElement.querySelector('.nav-folder-collapse-indicator');
+                if (collapseIndicator instanceof HTMLElement) {
+                    const parentEl = folderElement.closest('.nav-folder');
+                    const isCollapsed = parentEl?.classList.contains('is-collapsed') ||
+                                      collapseIndicator.classList.contains('is-collapsed');
+                    
+                    if (isCollapsed) {
+                        console.log("Clicking collapse indicator to expand folder");
+                        collapseIndicator.click();
+                    } else {
+                        console.log("Folder already appears to be expanded");
+                    }
+                } else {
+                    console.log("No collapse indicator found, might not be expandable");
+                }
+            } else {
+                console.log("Could not find folder element in DOM:", path);
+            }
+        }, 100);
+    }
+
+    onChooseItem(folder: TFolder): void {
+        console.log("Folder selected:", folder.path);
+        
+        const fileExplorerLeaves = this.app.workspace.getLeavesOfType("file-explorer");
+        console.log("File explorer leaves found:", fileExplorerLeaves.length);
+        
+        if (fileExplorerLeaves.length === 0) {
+            console.error("No file explorer leaf found");
+            return;
         }
-
-        // Reveal the target folder
-        fileExplorer.revealInFolder(folder);
-
-        // Wait for the DOM to update
-        setTimeout(() => {
-            // Find and highlight the folder element
-            const folderPath = folder.path;
-            const folderEl = document.querySelector(
-                `.nav-folder-title[data-path="${folderPath}"]`,
-            );
-
-            if (folderEl) {
-                // Scroll the folder into view
-                folderEl.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                });
-
-                // Add highlight class and remove after 2 seconds
-                folderEl.addClass("nav-folder-title-highlighted");
-                setTimeout(
-                    () => folderEl.removeClass("nav-folder-title-highlighted"),
-                    2000,
-                );
-
-                // If expandTargetFolder is enabled, expand the target folder
-                if (this.plugin.settings.expandTargetFolder) {
-                    const collapseIndicator =
-                        folderEl.querySelector(".collapse-icon");
-                    if (collapseIndicator) {
-                        const isCollapsed =
-                            collapseIndicator.classList.contains(
-                                "is-collapsed",
-                            );
-                        if (isCollapsed) {
-                            (collapseIndicator as HTMLElement).click();
+        
+        const fileExplorerLeaf = fileExplorerLeaves[0];
+        
+        this.app.workspace.revealLeaf(fileExplorerLeaf);
+        console.log("File explorer leaf revealed");
+        
+        try {
+            const app = this.app as ExtendedApp;
+            if (!app.internalPlugins?.plugins["file-explorer"]?.instance) {
+                console.error("Could not find file explorer plugin instance");
+                return;
+            }
+            
+            const fileExplorer = app.internalPlugins.plugins["file-explorer"].instance;
+            console.log("File explorer methods:", 
+                Object.getOwnPropertyNames(Object.getPrototypeOf(fileExplorer))
+                    .filter(m => typeof (fileExplorer as any)[m] === 'function'));
+            
+            if (typeof fileExplorer.revealInFolder !== 'function') {
+                console.error("revealInFolder method not found");
+                return;
+            }
+            
+            if (folder.parent && folder.parent.path) {
+                console.log("Processing parent folders for:", folder.parent.path);
+                
+                const pathParts = folder.parent.path.split("/");
+                let currentPath = "";
+                
+                for (const part of pathParts) {
+                    if (part) {
+                        currentPath += (currentPath ? "/" : "") + part;
+                        console.log("Processing parent path:", currentPath);
+                        
+                        const parentFolder = this.app.vault.getAbstractFileByPath(currentPath);
+                        if (parentFolder instanceof TFolder) {
+                            console.log("Revealing parent folder:", parentFolder.path);
+                            fileExplorer.revealInFolder(parentFolder);
+                            
+                            this.tryToExpandFolderViaDOM(parentFolder.path);
                         }
                     }
                 }
             }
-        }, 50);
+            
+            console.log("Revealing target folder:", folder.path);
+            fileExplorer.revealInFolder(folder);
+            
+            if (this.plugin.settings.expandTargetFolder && folder instanceof TFolder) {
+                console.log("Attempting to expand target folder:", folder.path);
+                this.tryToExpandFolderViaDOM(folder.path);
+            }
+            
+            setTimeout(() => {
+                console.log("Looking for folder to highlight:", folder.path);
+                
+                const escapedPath = this.escapePath(folder.path);
+                
+                const selectors = [
+                    `.nav-folder-title[data-path="${escapedPath}"]`,
+                    `.nav-file-title[data-path="${escapedPath}"]`,
+                    `[data-path="${escapedPath}"]`
+                ];
+                
+                let folderElement: HTMLElement | null = null;
+                
+                for (const selector of selectors) {
+                    const el = document.querySelector(selector);
+                    if (el instanceof HTMLElement) {
+                        folderElement = el;
+                        console.log("Found folder element for highlighting using selector:", selector);
+                        break;
+                    }
+                }
+                
+                if (!folderElement) {
+                    console.log("Trying broader approach to find folder element");
+                    
+                    const allElements = document.querySelectorAll('[data-path]');
+                    for (const el of Array.from(allElements)) {
+                        const elPath = el.getAttribute('data-path');
+                        if (elPath && (elPath === folder.path || folder.path.endsWith(elPath))) {
+                            folderElement = el as HTMLElement;
+                            console.log("Found folder by partial match:", elPath);
+                            break;
+                        }
+                    }
+                    
+                    if (!folderElement) {
+                        const pathSamples = Array.from(allElements).slice(0, 10)
+                            .map(el => el.getAttribute('data-path'));
+                        console.log("Sample data-path values:", pathSamples);
+                    }
+                }
+                
+                if (folderElement) {
+                    console.log("Scrolling folder into view");
+                    folderElement.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                    });
+                    
+                    console.log("Adding highlight class");
+                    folderElement.classList.add("nav-folder-title-highlighted");
+                    
+                    setTimeout(() => {
+                        if (folderElement) {
+                            folderElement.classList.remove("nav-folder-title-highlighted");
+                        }
+                    }, 2000);
+                } else {
+                    console.error("Could not find folder element to highlight");
+                }
+            }, 300);
+            
+        } catch (error) {
+            console.error("Error in folder navigation:", error);
+        }
     }
 }
