@@ -40,10 +40,10 @@ export class SettingsTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     }),
             );
-            
+
         // Add advanced section
         new Setting(containerEl).setName("Advanced").setHeading();
-        
+
         new Setting(containerEl)
             .setName("Debug mode")
             .setDesc(
