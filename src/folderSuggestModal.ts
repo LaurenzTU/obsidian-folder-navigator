@@ -1,12 +1,9 @@
 import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf, View } from "obsidian";
 import type FolderNavigatorPlugin from "./main";
 
-// Debug mode flag - set to false for production
-const DEBUG_MODE = true;
-
-// Helper function for conditional logging
-function log(message: string, ...args: any[]): void {
-    if (DEBUG_MODE) {
+// Helper function for conditional logging based on plugin settings
+function log(message: string, plugin: FolderNavigatorPlugin, ...args: any[]): void {
+    if (plugin.settings.debugMode) {
         console.log(message, ...args);
     }
 }
@@ -18,16 +15,12 @@ function logError(message: string, ...args: any[]): void {
 
 interface FileExplorerView extends View {
     fileItems: Record<string, any>;
-    expandFolder: (folder: TFolder) => void;
-    openFolder: (folder: TFolder) => void;
-    setFolder: (folder: TFolder) => void;
-    expandParent: (file: any) => void; // Internal method to expand parent folders
+    expandFolder?: (folder: TFolder) => void;  // Optional: may not exist in all versions
 }
 
 interface FileExplorerInstance {
     view: FileExplorerView;
     revealInFolder: (file: any) => void;
-    expandFolders: (folders: TFolder[]) => void; // Might be available in some versions
 }
 
 interface InternalPlugins {
@@ -51,6 +44,9 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         this.plugin = plugin;
         this.setPlaceholder("Type folder name...");
         this.folders = this.getAllFolders();
+        
+        // Use the max results from settings
+        this.limit = this.plugin.settings.maxResults;
     }
 
     private getAllFolders(): TFolder[] {
@@ -63,6 +59,21 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
 
     getItemText(folder: TFolder): string {
         return folder.path;
+    }
+
+    /**
+     * Get all parent folders of a given folder in order from root to leaf
+     */
+    private getParentFolderChain(folder: TFolder): TFolder[] {
+        const parentChain: TFolder[] = [];
+        let currentFolder: TFolder | null = folder.parent;
+        
+        while (currentFolder) {
+            parentChain.unshift(currentFolder); // Add at beginning to get root->leaf order
+            currentFolder = currentFolder.parent;
+        }
+        
+        return parentChain;
     }
 
     /**
@@ -85,15 +96,15 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
             }
 
             // Log available methods for debugging
-            if (DEBUG_MODE) {
-                log("File explorer instance methods:");
+            if (this.plugin.settings.debugMode) {
+                log("File explorer instance methods:", this.plugin);
                 const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(fileExplorer));
-                log(methods.join(", "));
+                log(methods.join(", "), this.plugin);
                 
                 if (fileExplorer.view) {
-                    log("File explorer view methods:");
+                    log("File explorer view methods:", this.plugin);
                     const viewMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(fileExplorer.view));
-                    log(viewMethods.join(", "));
+                    log(viewMethods.join(", "), this.plugin);
                 }
             }
 
@@ -105,25 +116,10 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     }
 
     /**
-     * Get all parent folders of a given folder in order from root to leaf
-     */
-    private getParentFolderChain(folder: TFolder): TFolder[] {
-        const parentChain: TFolder[] = [];
-        let currentFolder: TFolder | null = folder.parent;
-        
-        while (currentFolder) {
-            parentChain.unshift(currentFolder); // Add at beginning to get root->leaf order
-            currentFolder = currentFolder.parent;
-        }
-        
-        return parentChain;
-    }
-
-    /**
      * Event handler for when a folder is chosen from the suggestion list
      */
     onChooseItem(folder: TFolder): void {
-        log(`Folder selected: "${folder.path}" (name: "${folder.name}")`);
+        log(`Folder selected: "${folder.path}" (name: "${folder.name}")`, this.plugin);
         
         try {
             // Close the modal first
@@ -138,7 +134,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
             
             const fileExplorerLeaf = fileExplorerLeaves[0];
             this.app.workspace.revealLeaf(fileExplorerLeaf);
-            log("File explorer leaf revealed");
+            log("File explorer leaf revealed", this.plugin);
             
             // Get the file explorer instance
             const fileExplorer = this.getFileExplorer();
@@ -148,16 +144,16 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
             }
             
             // Step 1: Reveal the folder in the file explorer
-            log(`Revealing folder in explorer: "${folder.path}"`);
+            log(`Revealing folder in explorer: "${folder.path}"`, this.plugin);
             fileExplorer.revealInFolder(folder);
             
             // Step 2: Wait a bit for the UI to update, then expand folders using DOM
             setTimeout(() => {
                 if (this.plugin.settings.expandTargetFolder) {
                     // Get all parent folders in order
-                    log(`Expanding parent folders for: "${folder.path}"`);
+                    log(`Expanding parent folders for: "${folder.path}"`, this.plugin);
                     const parentFolders = this.getParentFolderChain(folder);
-                    log(`Parent chain: ${parentFolders.map(f => f.name).join(" -> ")}`);
+                    log(`Parent chain: ${parentFolders.map(f => f.name).join(" -> ")}`, this.plugin);
                     
                     // First, expand all parent folders in order from root to leaf
                     parentFolders.forEach((parentFolder, index) => {
@@ -169,7 +165,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                     
                     // Then expand the target folder itself (after parents are expanded)
                     setTimeout(() => {
-                        log(`Expanding target folder: "${folder.name}"`);
+                        log(`Expanding target folder: "${folder.name}"`, this.plugin);
                         this.expandFolderByDOMClick(folder.name);
                         
                         // Highlight the folder after expansion
@@ -194,43 +190,43 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
      */
     private expandFolderByDOMClick(folderName: string): void {
         try {
-            log(`Looking for folder to expand: "${folderName}"`);
+            log(`Looking for folder to expand: "${folderName}"`, this.plugin);
             
             // Find all folder title content elements
             const allTitleContents = document.querySelectorAll(".nav-folder-title-content");
             
             for (const titleContent of Array.from(allTitleContents)) {
                 if (titleContent.textContent === folderName) {
-                    log(`Found folder title content: "${folderName}"`);
+                    log(`Found folder title content: "${folderName}"`, this.plugin);
                     
                     // Get the title element
                     const titleElement = titleContent.closest(".nav-folder-title");
                     if (!(titleElement instanceof HTMLElement)) {
-                        log(`Could not find title element for: "${folderName}"`);
+                        log(`Could not find title element for: "${folderName}"`, this.plugin);
                         continue;
                     }
                     
                     // Get the folder element
                     const folderElement = titleContent.closest(".nav-folder");
                     if (!(folderElement instanceof HTMLElement)) {
-                        log(`Could not find folder element for: "${folderName}"`);
+                        log(`Could not find folder element for: "${folderName}"`, this.plugin);
                         continue;
                     }
                     
                     // Check if it's collapsed
                     if (folderElement.classList.contains("is-collapsed")) {
-                        log(`Folder is collapsed, clicking title to expand: "${folderName}"`);
+                        log(`Folder is collapsed, clicking title to expand: "${folderName}"`, this.plugin);
                         // Click the title element directly - this is more reliable than the collapse indicator
                         titleElement.click();
                         return;
                     } else {
-                        log(`Folder already expanded: "${folderName}"`);
+                        log(`Folder already expanded: "${folderName}"`, this.plugin);
                         return;
                     }
                 }
             }
             
-            log(`Could not find folder with name: "${folderName}"`);
+            log(`Could not find folder with name: "${folderName}"`, this.plugin);
         } catch (error) {
             logError(`Error expanding folder: ${error}`);
         }
@@ -241,14 +237,14 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
      */
     private highlightFolderInDOM(folderName: string): void {
         try {
-            log(`Looking for folder to highlight: "${folderName}"`);
+            log(`Looking for folder to highlight: "${folderName}"`, this.plugin);
             
             // Find all folder title content elements
             const allTitleContents = document.querySelectorAll(".nav-folder-title-content");
             
             for (const titleContent of Array.from(allTitleContents)) {
                 if (titleContent.textContent === folderName) {
-                    log(`Found folder to highlight: "${folderName}"`);
+                    log(`Found folder to highlight: "${folderName}"`, this.plugin);
                     
                     // Get the title element
                     const titleElement = titleContent.closest(".nav-folder-title");
@@ -274,7 +270,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                 }
             }
             
-            log(`Could not find folder to highlight: "${folderName}"`);
+            log(`Could not find folder to highlight: "${folderName}"`, this.plugin);
         } catch (error) {
             logError(`Error highlighting folder: ${error}`);
         }

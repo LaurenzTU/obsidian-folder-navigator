@@ -40,5 +40,22 @@ export class SettingsTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     }),
             );
+            
+        // Add advanced section
+        new Setting(containerEl).setName("Advanced").setHeading();
+        
+        new Setting(containerEl)
+            .setName("Debug mode")
+            .setDesc(
+                "Enable detailed logging to console for troubleshooting issues. This may affect performance and should be disabled during normal use.",
+            )
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.debugMode)
+                    .onChange(async (value) => {
+                        this.plugin.settings.debugMode = value;
+                        await this.plugin.saveSettings();
+                    }),
+            );
     }
 }
