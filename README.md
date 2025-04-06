@@ -4,6 +4,8 @@
 
 An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to folders in your vault using fuzzy search.
 
+![demo](/docs/attachment/demo.gif)
+
 ## Features
 
 - Quick folder navigation using fuzzy search
