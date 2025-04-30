@@ -9,9 +9,13 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 ## Features
 
 - Quick folder navigation using fuzzy search
-- Configurable maximum number of search results
+- Configurable maximum number of search results 
 - Expand target folder on navigation
 - Works with nested folders
+- Smart folder sorting options:
+  - Default sorting (alphabetical)
+  - Recently visited folders displayed at the top
+  - Frequently visited folders displayed at the top
 
 ## Why Folder Navigator?
 

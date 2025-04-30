@@ -1,5 +1,6 @@
 import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf, View } from "obsidian";
 import type FolderNavigatorPlugin from "./main";
+import { FolderSortMode } from "./settings";
 
 // Helper function for conditional logging based on plugin settings
 function log(
@@ -42,12 +43,14 @@ interface ExtendedApp extends App {
 export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     folders: TFolder[];
     plugin: FolderNavigatorPlugin;
+    sortedFolders: TFolder[] = [];
 
     constructor(app: App, plugin: FolderNavigatorPlugin) {
         super(app);
         this.plugin = plugin;
         this.setPlaceholder("Type folder name...");
         this.folders = this.getAllFolders();
+        this.sortedFolders = this.getSortedFolders();
 
         // Use the max results from settings
         this.limit = this.plugin.settings.maxResults;
@@ -57,8 +60,101 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         return this.app.vault.getAllFolders();
     }
 
+    /**
+     * Sort folders based on the selected sort mode in settings
+     */
+    private getSortedFolders(): TFolder[] {
+        const allFolders = this.getAllFolders();
+        const sortMode = this.plugin.settings.folderSortMode;
+        
+        log(`Sorting folders using mode: ${sortMode}`, this.plugin);
+        
+        // Default sorting (alphabetical by path)
+        if (sortMode === FolderSortMode.DEFAULT) {
+            return allFolders;
+        }
+        
+        // Get folder history from settings
+        const folderHistory = this.plugin.settings.folderHistory;
+        
+        if (sortMode === FolderSortMode.RECENCY) {
+            // Create a copy of all folders to sort
+            const recentLimit = this.plugin.settings.recentFoldersToShow;
+            
+            // Find folders with history and sort by last accessed timestamp (descending)
+            const foldersWithHistory = allFolders.filter(f => folderHistory[f.path]);
+            const recentFolders = foldersWithHistory
+                .sort((a, b) => {
+                    const timeA = folderHistory[a.path]?.lastAccessed || 0;
+                    const timeB = folderHistory[b.path]?.lastAccessed || 0;
+                    return timeB - timeA; // Descending order (newest first)
+                })
+                .slice(0, recentLimit);
+                
+            // Get the remaining folders (those without history or beyond the limit)
+            const recentFolderPaths = new Set(recentFolders.map(f => f.path));
+            const remainingFolders = allFolders.filter(f => !recentFolderPaths.has(f.path));
+            
+            log(`Found ${recentFolders.length} recent folders to display`, this.plugin);
+            
+            // Combine recent folders with remaining folders
+            return [...recentFolders, ...remainingFolders];
+        }
+        
+        if (sortMode === FolderSortMode.FREQUENCY) {
+            // Create a copy of all folders to sort
+            const frequentLimit = this.plugin.settings.frequentFoldersToShow;
+            
+            // Find folders with history and sort by access count (descending)
+            const foldersWithHistory = allFolders.filter(f => folderHistory[f.path]);
+            const frequentFolders = foldersWithHistory
+                .sort((a, b) => {
+                    const countA = folderHistory[a.path]?.accessCount || 0;
+                    const countB = folderHistory[b.path]?.accessCount || 0;
+                    return countB - countA; // Descending order (most frequent first)
+                })
+                .slice(0, frequentLimit);
+                
+            // Get the remaining folders (those without history or beyond the limit)
+            const frequentFolderPaths = new Set(frequentFolders.map(f => f.path));
+            const remainingFolders = allFolders.filter(f => !frequentFolderPaths.has(f.path));
+            
+            log(`Found ${frequentFolders.length} frequent folders to display`, this.plugin);
+            
+            // Combine frequent folders with remaining folders
+            return [...frequentFolders, ...remainingFolders];
+        }
+        
+        // Fallback to default sorting
+        return allFolders;
+    }
+
+    /**
+     * Update folder access history when a folder is selected
+     */
+    private updateFolderHistory(folder: TFolder): void {
+        // Get current history or create new entry
+        const folderPath = folder.path;
+        const history = this.plugin.settings.folderHistory[folderPath] || { 
+            lastAccessed: 0,
+            accessCount: 0
+        };
+        
+        // Update history data
+        history.lastAccessed = Date.now();
+        history.accessCount += 1;
+        
+        // Save back to settings
+        this.plugin.settings.folderHistory[folderPath] = history;
+        
+        // Save settings
+        this.plugin.saveSettings();
+        
+        log(`Updated folder history for "${folderPath}": ${JSON.stringify(history)}`, this.plugin);
+    }
+
     getItems(): TFolder[] {
-        return this.folders;
+        return this.sortedFolders;
     }
 
     getItemText(folder: TFolder): string {
@@ -136,6 +232,9 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         );
 
         try {
+            // Update folder history
+            this.updateFolderHistory(folder);
+            
             // Close the modal first
             this.close();
 
