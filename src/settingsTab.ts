@@ -7,7 +7,7 @@ import {
     Notice,
 } from "obsidian";
 import FolderNavigatorPlugin from "./main";
-import { FolderSortMode } from "./settings";
+import { FolderDisplayMode } from "./settings";
 
 export class SettingsTab extends PluginSettingTab {
     plugin: FolderNavigatorPlugin;
@@ -50,32 +50,29 @@ export class SettingsTab extends PluginSettingTab {
                     }),
             );
 
-        // Folder sorting section
-        new Setting(containerEl).setName("Folder sorting").setHeading();
+        // Folder display preferences section
+        new Setting(containerEl).setName("Folder display preferences").setHeading();
 
         new Setting(containerEl)
-            .setName("Sort mode")
-            .setDesc("How folders are sorted in the suggestion list")
+            .setName("Display priority")
+            .setDesc("Control which folders appear at the top of the suggestion list before searching")
             .addDropdown((dropdown: DropdownComponent) => {
                 dropdown
-                    .addOption(FolderSortMode.DEFAULT, "Default (alphabetical)")
-                    .addOption(FolderSortMode.RECENCY, "Recently visited")
-                    .addOption(FolderSortMode.FREQUENCY, "Frequently visited")
-                    .setValue(this.plugin.settings.folderSortMode)
+                    .addOption(FolderDisplayMode.DEFAULT, "Default order (alphabetical)")
+                    .addOption(FolderDisplayMode.RECENCY, "Recently visited first")
+                    .addOption(FolderDisplayMode.FREQUENCY, "Frequently visited first")
+                    .setValue(this.plugin.settings.folderDisplayMode)
                     .onChange(async (value: string) => {
-                        this.plugin.settings.folderSortMode =
-                            value as FolderSortMode;
+                        this.plugin.settings.folderDisplayMode = value as FolderDisplayMode;
                         await this.plugin.saveSettings();
                     });
             });
 
-        // Only show these settings if the sort mode is not DEFAULT
-        if (this.plugin.settings.folderSortMode !== FolderSortMode.DEFAULT) {
+        // Only show these settings if the display mode is not DEFAULT
+        if (this.plugin.settings.folderDisplayMode !== FolderDisplayMode.DEFAULT) {
             new Setting(containerEl)
                 .setName("Recent folders to show")
-                .setDesc(
-                    "Number of recently visited folders to display at the top when using the recency sort mode",
-                )
+                .setDesc("Number of recently visited folders to display at the top when using 'Recently visited first' mode")
                 .addSlider((slider) =>
                     slider
                         .setLimits(1, 20, 1)
@@ -89,9 +86,7 @@ export class SettingsTab extends PluginSettingTab {
 
             new Setting(containerEl)
                 .setName("Frequent folders to show")
-                .setDesc(
-                    "Number of frequently visited folders to display at the top when using the frequency sort mode",
-                )
+                .setDesc("Number of frequently visited folders to display at the top when using 'Frequently visited first' mode")
                 .addSlider((slider) =>
                     slider
                         .setLimits(1, 20, 1)

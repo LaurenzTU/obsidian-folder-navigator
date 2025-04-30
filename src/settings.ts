@@ -1,6 +1,6 @@
 import { App } from "obsidian";
 
-export enum FolderSortMode {
+export enum FolderDisplayMode {
     DEFAULT = "default",
     RECENCY = "recency",
     FREQUENCY = "frequency",
@@ -10,7 +10,7 @@ export interface PluginSettings {
     maxResults: number;
     expandTargetFolder: boolean;
     debugMode: boolean;
-    folderSortMode: FolderSortMode;
+    folderDisplayMode: FolderDisplayMode;
     recentFoldersToShow: number;
     frequentFoldersToShow: number;
     folderHistory: Record<
@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
     maxResults: 10,
     expandTargetFolder: true, // Enable by default for better navigation
     debugMode: false, // Disabled by default
-    folderSortMode: FolderSortMode.DEFAULT,
+    folderDisplayMode: FolderDisplayMode.DEFAULT,
     recentFoldersToShow: 5,
     frequentFoldersToShow: 5,
     folderHistory: {},

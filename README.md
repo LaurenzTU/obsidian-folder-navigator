@@ -12,12 +12,13 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 - Configurable maximum number of search results 
 - Expand target folder on navigation
 - Works with nested folders
-- Smart folder sorting options:
-  - Default sorting (alphabetical)
+- Smart folder prioritization options:
+  - Default order (alphabetical)
   - Recently visited folders displayed at the top
   - Frequently visited folders displayed at the top
 - Customizable number of recent/frequent folders to show
-- Visual separators to distinguish recent/frequent folders
+- Visual separators to distinguish prioritized folders
+- Option to reset folder navigation history if needed
 
 ## Why Folder Navigator?
 

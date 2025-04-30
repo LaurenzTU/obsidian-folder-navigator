@@ -7,7 +7,7 @@ import {
     FuzzyMatch,
 } from "obsidian";
 import type FolderNavigatorPlugin from "./main";
-import { FolderSortMode } from "./settings";
+import { FolderDisplayMode } from "./settings";
 
 // Helper function for conditional logging based on plugin settings
 function log(
@@ -68,23 +68,23 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     }
 
     /**
-     * Sort folders based on the selected sort mode in settings
+     * Sort folders based on the selected display mode in settings
      */
     private getSortedFolders(): TFolder[] {
         const allFolders = this.getAllFolders();
-        const sortMode = this.plugin.settings.folderSortMode;
+        const displayMode = this.plugin.settings.folderDisplayMode;
 
-        log(`Sorting folders using mode: ${sortMode}`, this.plugin);
+        log(`Sorting folders using display mode: ${displayMode}`, this.plugin);
 
         // Default sorting (alphabetical by path)
-        if (sortMode === FolderSortMode.DEFAULT) {
+        if (displayMode === FolderDisplayMode.DEFAULT) {
             return allFolders;
         }
 
         // Get folder history from settings
         const folderHistory = this.plugin.settings.folderHistory;
 
-        if (sortMode === FolderSortMode.RECENCY) {
+        if (displayMode === FolderDisplayMode.RECENCY) {
             // Create a copy of all folders to sort
             const recentLimit = this.plugin.settings.recentFoldersToShow;
 
@@ -137,7 +137,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
             return allFolders;
         }
 
-        if (sortMode === FolderSortMode.FREQUENCY) {
+        if (displayMode === FolderDisplayMode.FREQUENCY) {
             // Create a copy of all folders to sort
             const frequentLimit = this.plugin.settings.frequentFoldersToShow;
 
