@@ -1,4 +1,11 @@
-import { App, PluginSettingTab, Setting, DropdownComponent, Modal, Notice } from "obsidian";
+import {
+    App,
+    PluginSettingTab,
+    Setting,
+    DropdownComponent,
+    Modal,
+    Notice,
+} from "obsidian";
 import FolderNavigatorPlugin from "./main";
 import { FolderSortMode } from "./settings";
 
@@ -56,7 +63,8 @@ export class SettingsTab extends PluginSettingTab {
                     .addOption(FolderSortMode.FREQUENCY, "Frequently visited")
                     .setValue(this.plugin.settings.folderSortMode)
                     .onChange(async (value: string) => {
-                        this.plugin.settings.folderSortMode = value as FolderSortMode;
+                        this.plugin.settings.folderSortMode =
+                            value as FolderSortMode;
                         await this.plugin.saveSettings();
                     });
             });
@@ -65,7 +73,9 @@ export class SettingsTab extends PluginSettingTab {
         if (this.plugin.settings.folderSortMode !== FolderSortMode.DEFAULT) {
             new Setting(containerEl)
                 .setName("Recent folders to show")
-                .setDesc("Number of recently visited folders to display at the top when using the recency sort mode")
+                .setDesc(
+                    "Number of recently visited folders to display at the top when using the recency sort mode",
+                )
                 .addSlider((slider) =>
                     slider
                         .setLimits(1, 20, 1)
@@ -79,7 +89,9 @@ export class SettingsTab extends PluginSettingTab {
 
             new Setting(containerEl)
                 .setName("Frequent folders to show")
-                .setDesc("Number of frequently visited folders to display at the top when using the frequency sort mode")
+                .setDesc(
+                    "Number of frequently visited folders to display at the top when using the frequency sort mode",
+                )
                 .addSlider((slider) =>
                     slider
                         .setLimits(1, 20, 1)
@@ -95,7 +107,9 @@ export class SettingsTab extends PluginSettingTab {
         // Add reset history button
         new Setting(containerEl)
             .setName("Reset folder history")
-            .setDesc("Clear the tracked history of visited folders. Warning: This will remove all recency and frequency data.")
+            .setDesc(
+                "Clear the tracked history of visited folders. Warning: This will remove all recency and frequency data.",
+            )
             .addButton((button) =>
                 button
                     .setButtonText("Reset")
@@ -106,32 +120,38 @@ export class SettingsTab extends PluginSettingTab {
                         confirmModal.titleEl.setText("Reset folder history");
                         confirmModal.contentEl.createEl("p", {
                             text: "Are you sure? This will permanently delete all folder navigation history including recently visited and frequently used folder data.",
-                            cls: "mod-warning"
+                            cls: "mod-warning",
                         });
-                        
-                        const buttonContainer = confirmModal.contentEl.createDiv({
-                            cls: "modal-button-container"
-                        });
-                        
+
+                        const buttonContainer =
+                            confirmModal.contentEl.createDiv({
+                                cls: "modal-button-container",
+                            });
+
                         // Cancel button
-                        buttonContainer.createEl("button", {
-                            text: "Cancel"
-                        }).addEventListener("click", () => {
-                            confirmModal.close();
-                        });
-                        
+                        buttonContainer
+                            .createEl("button", {
+                                text: "Cancel",
+                            })
+                            .addEventListener("click", () => {
+                                confirmModal.close();
+                            });
+
                         // Confirm button
-                        const confirmButton = buttonContainer.createEl("button", {
-                            text: "Reset folder history",
-                            cls: "mod-warning"
-                        });
+                        const confirmButton = buttonContainer.createEl(
+                            "button",
+                            {
+                                text: "Reset folder history",
+                                cls: "mod-warning",
+                            },
+                        );
                         confirmButton.addEventListener("click", async () => {
                             this.plugin.settings.folderHistory = {};
                             await this.plugin.saveSettings();
                             confirmModal.close();
                             new Notice("Folder history has been reset");
                         });
-                        
+
                         confirmModal.open();
                     }),
             );

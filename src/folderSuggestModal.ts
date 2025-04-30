@@ -1,4 +1,11 @@
-import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf, View, FuzzyMatch } from "obsidian";
+import {
+    App,
+    FuzzySuggestModal,
+    TFolder,
+    WorkspaceLeaf,
+    View,
+    FuzzyMatch,
+} from "obsidian";
 import type FolderNavigatorPlugin from "./main";
 import { FolderSortMode } from "./settings";
 
@@ -66,23 +73,25 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     private getSortedFolders(): TFolder[] {
         const allFolders = this.getAllFolders();
         const sortMode = this.plugin.settings.folderSortMode;
-        
+
         log(`Sorting folders using mode: ${sortMode}`, this.plugin);
-        
+
         // Default sorting (alphabetical by path)
         if (sortMode === FolderSortMode.DEFAULT) {
             return allFolders;
         }
-        
+
         // Get folder history from settings
         const folderHistory = this.plugin.settings.folderHistory;
-        
+
         if (sortMode === FolderSortMode.RECENCY) {
             // Create a copy of all folders to sort
             const recentLimit = this.plugin.settings.recentFoldersToShow;
-            
+
             // Find folders with history and sort by last accessed timestamp (descending)
-            const foldersWithHistory = allFolders.filter(f => folderHistory[f.path]);
+            const foldersWithHistory = allFolders.filter(
+                (f) => folderHistory[f.path],
+            );
             const recentFolders = foldersWithHistory
                 .sort((a, b) => {
                     const timeA = folderHistory[a.path]?.lastAccessed || 0;
@@ -90,39 +99,52 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                     return timeB - timeA; // Descending order (newest first)
                 })
                 .slice(0, recentLimit);
-                
+
             // Get the remaining folders (those without history or beyond the limit)
-            const recentFolderPaths = new Set(recentFolders.map(f => f.path));
-            const remainingFolders = allFolders.filter(f => !recentFolderPaths.has(f.path));
-            
-            log(`Found ${recentFolders.length} recent folders to display`, this.plugin);
-            
+            const recentFolderPaths = new Set(recentFolders.map((f) => f.path));
+            const remainingFolders = allFolders.filter(
+                (f) => !recentFolderPaths.has(f.path),
+            );
+
+            log(
+                `Found ${recentFolders.length} recent folders to display`,
+                this.plugin,
+            );
+
             // Only add separator if we have recent folders to show
             if (recentFolders.length > 0) {
                 // Create a separator "folder" (not a real folder)
                 const separator = {} as TFolder;
                 (separator as any)._isSeparator = true;
-                (separator as any)._separatorText = "— Recently visited folders —";
-                
+                (separator as any)._separatorText =
+                    "— Recently visited folders —";
+
                 // Create another separator for the remaining folders
                 const remainingSeparator = {} as TFolder;
                 (remainingSeparator as any)._isSeparator = true;
                 (remainingSeparator as any)._separatorText = "— All folders —";
-                
+
                 // Combine recent folders with remaining folders with separators
-                return [separator, ...recentFolders, remainingSeparator, ...remainingFolders];
+                return [
+                    separator,
+                    ...recentFolders,
+                    remainingSeparator,
+                    ...remainingFolders,
+                ];
             }
-            
+
             // If no recent folders, just return all folders
             return allFolders;
         }
-        
+
         if (sortMode === FolderSortMode.FREQUENCY) {
             // Create a copy of all folders to sort
             const frequentLimit = this.plugin.settings.frequentFoldersToShow;
-            
+
             // Find folders with history and sort by access count (descending)
-            const foldersWithHistory = allFolders.filter(f => folderHistory[f.path]);
+            const foldersWithHistory = allFolders.filter(
+                (f) => folderHistory[f.path],
+            );
             const frequentFolders = foldersWithHistory
                 .sort((a, b) => {
                     const countA = folderHistory[a.path]?.accessCount || 0;
@@ -130,33 +152,46 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
                     return countB - countA; // Descending order (most frequent first)
                 })
                 .slice(0, frequentLimit);
-                
+
             // Get the remaining folders (those without history or beyond the limit)
-            const frequentFolderPaths = new Set(frequentFolders.map(f => f.path));
-            const remainingFolders = allFolders.filter(f => !frequentFolderPaths.has(f.path));
-            
-            log(`Found ${frequentFolders.length} frequent folders to display`, this.plugin);
-            
+            const frequentFolderPaths = new Set(
+                frequentFolders.map((f) => f.path),
+            );
+            const remainingFolders = allFolders.filter(
+                (f) => !frequentFolderPaths.has(f.path),
+            );
+
+            log(
+                `Found ${frequentFolders.length} frequent folders to display`,
+                this.plugin,
+            );
+
             // Only add separator if we have frequent folders to show
             if (frequentFolders.length > 0) {
                 // Create a separator "folder" (not a real folder)
                 const separator = {} as TFolder;
                 (separator as any)._isSeparator = true;
-                (separator as any)._separatorText = "— Frequently visited folders —";
-                
+                (separator as any)._separatorText =
+                    "— Frequently visited folders —";
+
                 // Create another separator for the remaining folders
                 const remainingSeparator = {} as TFolder;
                 (remainingSeparator as any)._isSeparator = true;
                 (remainingSeparator as any)._separatorText = "— All folders —";
-                
+
                 // Combine frequent folders with remaining folders with separators
-                return [separator, ...frequentFolders, remainingSeparator, ...remainingFolders];
+                return [
+                    separator,
+                    ...frequentFolders,
+                    remainingSeparator,
+                    ...remainingFolders,
+                ];
             }
-            
+
             // If no frequent folders, just return all folders
             return allFolders;
         }
-        
+
         // Fallback to default sorting
         return allFolders;
     }
@@ -167,22 +202,25 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     private updateFolderHistory(folder: TFolder): void {
         // Get current history or create new entry
         const folderPath = folder.path;
-        const history = this.plugin.settings.folderHistory[folderPath] || { 
+        const history = this.plugin.settings.folderHistory[folderPath] || {
             lastAccessed: 0,
-            accessCount: 0
+            accessCount: 0,
         };
-        
+
         // Update history data
         history.lastAccessed = Date.now();
         history.accessCount += 1;
-        
+
         // Save back to settings
         this.plugin.settings.folderHistory[folderPath] = history;
-        
+
         // Save settings
         this.plugin.saveSettings();
-        
-        log(`Updated folder history for "${folderPath}": ${JSON.stringify(history)}`, this.plugin);
+
+        log(
+            `Updated folder history for "${folderPath}": ${JSON.stringify(history)}`,
+            this.plugin,
+        );
     }
 
     getItems(): TFolder[] {
@@ -266,7 +304,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         if ((folder as any)._isSeparator) {
             return;
         }
-        
+
         log(
             `Folder selected: "${folder.path}" (name: "${folder.name}")`,
             this.plugin,
@@ -275,7 +313,7 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         try {
             // Update folder history
             this.updateFolderHistory(folder);
-            
+
             // Close the modal first
             this.close();
 
@@ -484,12 +522,12 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         if ((item.item as any)._isSeparator) {
             el.empty();
             const separatorEl = el.createDiv({
-                cls: "folder-separator"
+                cls: "folder-separator",
             });
             separatorEl.setText((item.item as any)._separatorText);
             return;
         }
-        
+
         // Regular folder rendering - use the default rendering
         super.renderSuggestion(item, el);
     }

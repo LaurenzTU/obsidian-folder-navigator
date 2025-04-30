@@ -3,7 +3,7 @@ import { App } from "obsidian";
 export enum FolderSortMode {
     DEFAULT = "default",
     RECENCY = "recency",
-    FREQUENCY = "frequency"
+    FREQUENCY = "frequency",
 }
 
 export interface PluginSettings {
@@ -13,10 +13,13 @@ export interface PluginSettings {
     folderSortMode: FolderSortMode;
     recentFoldersToShow: number;
     frequentFoldersToShow: number;
-    folderHistory: Record<string, { 
-        lastAccessed: number; // timestamp
-        accessCount: number;  // visit count
-    }>;
+    folderHistory: Record<
+        string,
+        {
+            lastAccessed: number; // timestamp
+            accessCount: number; // visit count
+        }
+    >;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
