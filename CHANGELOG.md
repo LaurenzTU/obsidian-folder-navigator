@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.3.0] - 2025-04-30
+
+### Changes
+
+- Add visual separators and confirmation modal for folder history reset
+- Add sort options
+- Add demo
+- Improve code format
+
 ## [0.2.1] - 2025-04-06
 
 ### Changes
