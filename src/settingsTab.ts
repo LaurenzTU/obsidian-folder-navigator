@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, DropdownComponent } from "obsidian";
+import { App, PluginSettingTab, Setting, DropdownComponent, Modal, Notice } from "obsidian";
 import FolderNavigatorPlugin from "./main";
 import { FolderSortMode } from "./settings";
 
@@ -95,13 +95,44 @@ export class SettingsTab extends PluginSettingTab {
         // Add reset history button
         new Setting(containerEl)
             .setName("Reset folder history")
-            .setDesc("Clear the tracked history of visited folders")
+            .setDesc("Clear the tracked history of visited folders. Warning: This will remove all recency and frequency data.")
             .addButton((button) =>
                 button
                     .setButtonText("Reset")
+                    .setWarning()
                     .onClick(async () => {
-                        this.plugin.settings.folderHistory = {};
-                        await this.plugin.saveSettings();
+                        // Create a confirmation modal
+                        const confirmModal = new Modal(this.app);
+                        confirmModal.titleEl.setText("Reset folder history");
+                        confirmModal.contentEl.createEl("p", {
+                            text: "Are you sure? This will permanently delete all folder navigation history including recently visited and frequently used folder data.",
+                            cls: "mod-warning"
+                        });
+                        
+                        const buttonContainer = confirmModal.contentEl.createDiv({
+                            cls: "modal-button-container"
+                        });
+                        
+                        // Cancel button
+                        buttonContainer.createEl("button", {
+                            text: "Cancel"
+                        }).addEventListener("click", () => {
+                            confirmModal.close();
+                        });
+                        
+                        // Confirm button
+                        const confirmButton = buttonContainer.createEl("button", {
+                            text: "Reset folder history",
+                            cls: "mod-warning"
+                        });
+                        confirmButton.addEventListener("click", async () => {
+                            this.plugin.settings.folderHistory = {};
+                            await this.plugin.saveSettings();
+                            confirmModal.close();
+                            new Notice("Folder history has been reset");
+                        });
+                        
+                        confirmModal.open();
                     }),
             );
 

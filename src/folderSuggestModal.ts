@@ -1,4 +1,4 @@
-import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf, View } from "obsidian";
+import { App, FuzzySuggestModal, TFolder, WorkspaceLeaf, View, FuzzyMatch } from "obsidian";
 import type FolderNavigatorPlugin from "./main";
 import { FolderSortMode } from "./settings";
 
@@ -97,8 +97,24 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
             
             log(`Found ${recentFolders.length} recent folders to display`, this.plugin);
             
-            // Combine recent folders with remaining folders
-            return [...recentFolders, ...remainingFolders];
+            // Only add separator if we have recent folders to show
+            if (recentFolders.length > 0) {
+                // Create a separator "folder" (not a real folder)
+                const separator = {} as TFolder;
+                (separator as any)._isSeparator = true;
+                (separator as any)._separatorText = "— Recently visited folders —";
+                
+                // Create another separator for the remaining folders
+                const remainingSeparator = {} as TFolder;
+                (remainingSeparator as any)._isSeparator = true;
+                (remainingSeparator as any)._separatorText = "— All folders —";
+                
+                // Combine recent folders with remaining folders with separators
+                return [separator, ...recentFolders, remainingSeparator, ...remainingFolders];
+            }
+            
+            // If no recent folders, just return all folders
+            return allFolders;
         }
         
         if (sortMode === FolderSortMode.FREQUENCY) {
@@ -121,8 +137,24 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
             
             log(`Found ${frequentFolders.length} frequent folders to display`, this.plugin);
             
-            // Combine frequent folders with remaining folders
-            return [...frequentFolders, ...remainingFolders];
+            // Only add separator if we have frequent folders to show
+            if (frequentFolders.length > 0) {
+                // Create a separator "folder" (not a real folder)
+                const separator = {} as TFolder;
+                (separator as any)._isSeparator = true;
+                (separator as any)._separatorText = "— Frequently visited folders —";
+                
+                // Create another separator for the remaining folders
+                const remainingSeparator = {} as TFolder;
+                (remainingSeparator as any)._isSeparator = true;
+                (remainingSeparator as any)._separatorText = "— All folders —";
+                
+                // Combine frequent folders with remaining folders with separators
+                return [separator, ...frequentFolders, remainingSeparator, ...remainingFolders];
+            }
+            
+            // If no frequent folders, just return all folders
+            return allFolders;
         }
         
         // Fallback to default sorting
@@ -158,6 +190,10 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     }
 
     getItemText(folder: TFolder): string {
+        // For separator folders (which will have a special property), return the separator text
+        if ((folder as any)._isSeparator) {
+            return (folder as any)._separatorText;
+        }
         return folder.path;
     }
 
@@ -225,7 +261,12 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
     /**
      * Event handler for when a folder is chosen from the suggestion list
      */
-    onChooseItem(folder: TFolder): void {
+    onChooseItem(folder: TFolder, evt: MouseEvent | KeyboardEvent): void {
+        // Check if this is a separator and ignore if so
+        if ((folder as any)._isSeparator) {
+            return;
+        }
+        
         log(
             `Folder selected: "${folder.path}" (name: "${folder.name}")`,
             this.plugin,
@@ -435,5 +476,21 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         } catch (error) {
             logError(`Error highlighting folder: ${error}`);
         }
+    }
+
+    // Override the renderSuggestion method to customize how folders are displayed
+    renderSuggestion(item: FuzzyMatch<TFolder>, el: HTMLElement): void {
+        // Check if this is a separator
+        if ((item.item as any)._isSeparator) {
+            el.empty();
+            const separatorEl = el.createDiv({
+                cls: "folder-separator"
+            });
+            separatorEl.setText((item.item as any)._separatorText);
+            return;
+        }
+        
+        // Regular folder rendering - use the default rendering
+        super.renderSuggestion(item, el);
     }
 }

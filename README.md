@@ -16,6 +16,8 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
   - Default sorting (alphabetical)
   - Recently visited folders displayed at the top
   - Frequently visited folders displayed at the top
+- Customizable number of recent/frequent folders to show
+- Visual separators to distinguish recent/frequent folders
 
 ## Why Folder Navigator?
 
