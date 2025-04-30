@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+## [0.3.1] - 2025-04-30
+
+### Changes
+
+- Refactor settings tab to dynamically show/hide folder history options based on mode
+- Rename FolderSortMode to FolderDisplayMode and update related UI text for clarity
+- Improve code format
+
 ## [0.3.0] - 2025-04-30
 
 ### Changes
