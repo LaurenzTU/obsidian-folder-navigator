@@ -9,16 +9,19 @@ An [Obsidian](https://obsidian.md) plugin that allows you to quickly navigate to
 ## Features
 
 - Quick folder navigation using fuzzy search
-- Configurable maximum number of search results 
 - Expand target folder on navigation
-- Works with nested folders
 - Smart folder prioritization options:
-  - Default order (alphabetical)
-  - Recently visited folders displayed at the top
-  - Frequently visited folders displayed at the top
-- Customizable number of recent/frequent folders to show
-- Visual separators to distinguish prioritized folders
+	- Default order (alphabetical)
+	- Recently visited folders displayed at the top
+	- Frequently visited folders displayed at the top
 - Option to reset folder navigation history if needed
+
+
+## Videos and Articles
+
+### Articles
+
+- [The Strategy of Note Taking: Folders, Tags, Links, and Redundancy - PTKM](https://ptkm.net/blog-note-taking-strategy-folders-tags-links-redundancy)
 
 ## Why Folder Navigator?
 
