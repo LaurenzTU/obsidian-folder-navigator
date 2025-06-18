@@ -1,3 +1,4 @@
+// --- settings.ts ---
 import { App } from "obsidian";
 
 export enum FolderDisplayMode {
@@ -20,6 +21,8 @@ export interface PluginSettings {
             accessCount: number; // visit count
         }
     >;
+    // New setting to store excluded folder paths
+    excludedFolders: string[];
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -30,4 +33,5 @@ export const DEFAULT_SETTINGS: PluginSettings = {
     recentFoldersToShow: 5,
     frequentFoldersToShow: 5,
     folderHistory: {},
+    excludedFolders: [], // Initialize with an empty array
 };

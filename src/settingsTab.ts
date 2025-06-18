@@ -1,3 +1,4 @@
+// --- settingsTab.ts ---
 import {
     App,
     PluginSettingTab,
@@ -5,6 +6,7 @@ import {
     DropdownComponent,
     Modal,
     Notice,
+    TextComponent, // Import TextComponent for direct text input control
 } from "obsidian";
 import FolderNavigatorPlugin from "./main";
 import { FolderDisplayMode } from "./settings";
@@ -16,6 +18,7 @@ export class SettingsTab extends PluginSettingTab {
     recentFoldersSettingEl: HTMLElement;
     frequentFoldersSettingEl: HTMLElement;
     resetHistorySettingEl: HTMLElement;
+    excludedFoldersSettingEl: HTMLElement; // New element for excluded folders setting
 
     constructor(app: App, plugin: FolderNavigatorPlugin) {
         super(app, plugin);
@@ -30,7 +33,8 @@ export class SettingsTab extends PluginSettingTab {
         if (
             !this.recentFoldersSettingEl ||
             !this.frequentFoldersSettingEl ||
-            !this.resetHistorySettingEl
+            !this.resetHistorySettingEl ||
+            !this.excludedFoldersSettingEl // Include the new element
         ) {
             return;
         }
@@ -213,6 +217,85 @@ export class SettingsTab extends PluginSettingTab {
                         });
 
                         confirmModal.open();
+                    }),
+            );
+
+        // Excluded folders section
+        containerEl.createEl("h2", { text: "Excluded Folders" });
+        this.excludedFoldersSettingEl = containerEl.createDiv();
+
+        // Display current excluded folders
+        this.plugin.settings.excludedFolders.forEach((folderPath, index) => {
+            new Setting(this.excludedFoldersSettingEl)
+                .setName(folderPath)
+                .setDesc(
+                    "This folder and its children are excluded from search.",
+                )
+                .addButton((button) =>
+                    button
+                        .setButtonText("Remove")
+                        .setIcon("trash")
+                        .onClick(async () => {
+                            this.plugin.settings.excludedFolders.splice(
+                                index,
+                                1,
+                            );
+                            await this.plugin.saveSettings();
+                            this.display(); // Re-render settings tab to update list
+                            new Notice(
+                                `Removed "${folderPath}" from excluded folders.`,
+                            );
+                        }),
+                );
+        });
+
+        // Add new excluded folder input
+        let newExcludedFolder = "";
+        new Setting(this.excludedFoldersSettingEl)
+            .setName("Add new excluded folder")
+            .setDesc(
+                "Enter the full path of a folder to exclude (e.g., 'path/to/folder')",
+            )
+            .addText((text: TextComponent) => {
+                text.setPlaceholder("Folder path")
+                    .setValue(newExcludedFolder)
+                    .onChange((value) => {
+                        newExcludedFolder = value;
+                    });
+            })
+            .addButton((button) =>
+                button
+                    .setButtonText("Add")
+                    .setCta()
+                    .onClick(async () => {
+                        if (
+                            newExcludedFolder &&
+                            !this.plugin.settings.excludedFolders.includes(
+                                newExcludedFolder,
+                            )
+                        ) {
+                            this.plugin.settings.excludedFolders.push(
+                                newExcludedFolder,
+                            );
+                            await this.plugin.saveSettings();
+                            this.display(); // Re-render settings tab to update list
+                            new Notice(
+                                `Added "${newExcludedFolder}" to excluded folders.`,
+                            );
+                            newExcludedFolder = ""; // Clear input after adding
+                        } else if (
+                            this.plugin.settings.excludedFolders.includes(
+                                newExcludedFolder,
+                            )
+                        ) {
+                            new Notice(
+                                `"${newExcludedFolder}" is already in the excluded list.`,
+                            );
+                        } else {
+                            new Notice(
+                                "Please enter a folder path to exclude.",
+                            );
+                        }
                     }),
             );
 

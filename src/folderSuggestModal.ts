@@ -1,3 +1,4 @@
+// --- folderSuggestModal.ts ---
 import {
     App,
     FuzzySuggestModal,
@@ -63,8 +64,36 @@ export class FolderSuggestModal extends FuzzySuggestModal<TFolder> {
         this.limit = this.plugin.settings.maxResults;
     }
 
+    /**
+     * Checks if a given folder path is excluded or is a child of an excluded folder.
+     * @param folderPath The path of the folder to check.
+     * @returns True if the folder should be excluded, false otherwise.
+     */
+    private isPathExcluded(folderPath: string): boolean {
+        const excludedPaths = this.plugin.settings.excludedFolders;
+        return excludedPaths.some((excluded) => {
+            // Ensure consistent trailing slash for comparison
+            const normalizedFolderPath = folderPath.endsWith("/")
+                ? folderPath
+                : folderPath + "/";
+            const normalizedExcludedPath = excluded.endsWith("/")
+                ? excluded
+                : excluded + "/";
+
+            return normalizedFolderPath.startsWith(normalizedExcludedPath);
+        });
+    }
+
     private getAllFolders(): TFolder[] {
-        return this.app.vault.getAllFolders();
+        const allFolders = this.app.vault.getAllFolders();
+        const filteredFolders = allFolders.filter(
+            (folder) => !this.isPathExcluded(folder.path),
+        );
+        log(
+            `Total folders: ${allFolders.length}, Filtered folders (not excluded): ${filteredFolders.length}`,
+            this.plugin,
+        );
+        return filteredFolders;
     }
 
     /**
